@@ -1,0 +1,56 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+    maven {
+        url "https://packages.confluent.io/maven"
+    }
+}
+
+application {
+    mainClass = 'com.example.TrendingAssets'
+}
+
+test {
+    // JUnit 5.
+    useJUnitPlatform()
+}
+
+dependencies {
+    // App dependencies.
+    implementation "org.apache.beam:beam-sdks-java-core:2.51.0"
+    implementation "org.apache.beam:beam-runners-direct-java:2.51.0"
+    // Apache Beam dependency for KafkaIO
+    implementation "org.apache.beam:beam-sdks-java-io-kafka:2.51.0"
+    // Kafka common serialisation dependency
+    implementation "org.apache.kafka:kafka-clients:2.8.0"
+    // Kafka Avro deserialization dependency
+    implementation "io.confluent:kafka-avro-serializer:6.2.0"
+    // Apache Beam dependency for ClickhouseIO
+    implementation "org.apache.beam:beam-sdks-java-io-clickhouse:2.51.0"
+    implementation "org.slf4j:slf4j-jdk14:1.7.32"
+
+    // Tests dependencies.
+    // JUnit 5 library.
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.2'
+    testImplementation 'org.hamcrest:hamcrest:2.2'
+}
+
+// Package a self-contained jar file.
+jar {
+    archiveBaseName = 'pipeline'
+    destinationDirectory = file('build')
+    manifest {
+        attributes 'Main-Class': 'com.example.TrendingAssets'
+    }
+    exclude 'META-INF/*.SF'
+    exclude 'META-INF/*.DSA'
+    exclude 'META-INF/*.RSA'
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    from {
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+    }
+}
