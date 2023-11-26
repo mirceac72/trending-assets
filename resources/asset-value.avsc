@@ -1,0 +1,19 @@
+{
+  "fields": [
+    {
+      "name": "timestamp",
+      "type": "string"
+    },
+    {
+      "name": "asset",
+      "type": "string"
+    },
+    {
+      "name": "value",
+      "type": "string"
+    }
+  ],
+  "name": "AssetValue",
+  "namespace": "com.example",
+  "type": "record"
+}

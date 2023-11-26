@@ -38,7 +38,7 @@ public class RSITransform extends PTransform<PCollection<AssetValue>, PCollectio
   public PCollection<AssertRSI> expand(PCollection<AssetValue> input) {
     return input.apply("create-key-value-pairs", MapElements.into(
         TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.bigdecimals()))
-            .via(x -> KV.of(x.asset, x.value)))
+            .via(assetValue -> KV.of(assetValue.asset, assetValue.value)))
         .apply("group-values-per-time-interval", Window.into(FixedWindows.of(Duration.standardHours(1))))
         .apply("sum-values-per-group", Combine.perKey(BigDecimal::add))
         .apply("calculate-change", new ChangeTransform(Duration.standardHours(1)))

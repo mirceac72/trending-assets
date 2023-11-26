@@ -11,11 +11,25 @@ import org.apache.beam.sdk.values.PCollection;
 import org.apache.kafka.common.serialization.LongDeserializer;
 import org.joda.time.Duration;
 
-public class AssetValueReader {
-  public PTransform<PBegin, PCollection<AssetValue>> build() {
+public class AssetValueKafkaReader extends PTransform<PBegin, PCollection<AssetValue>> {
+
+  private String bootstrapServers;
+  private String topic;
+
+  public AssetValueKafkaReader(String bootstrapServers, String topic) {
+    this.bootstrapServers = bootstrapServers;
+    this.topic = topic;
+  }
+
+  @Override
+  public PCollection<AssetValue> expand(PBegin input) {
+    return input.apply("from-kafka", read());
+  }
+
+  private PTransform<PBegin, PCollection<AssetValue>> read() {
     return KafkaIO.<Long, AssetValue>read()
-        .withBootstrapServers("localhost:9092")
-        .withTopic("asset-value")
+        .withBootstrapServers(bootstrapServers)
+        .withTopic(topic)
         .withKeyDeserializer(LongDeserializer.class)
         .withValueDeserializerAndCoder((Class) KafkaAvroDeserializer.class, AvroCoder.of(AssetValue.class))
         .withTimestampPolicyFactory((topicPartition, previousWatermark) ->
