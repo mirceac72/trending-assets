@@ -1,4 +1,4 @@
-package com.example.transform;
+package com.example.transform.trend;
 
 import org.apache.beam.sdk.transforms.SerializableFunction;
 
@@ -9,12 +9,21 @@ import static java.math.RoundingMode.UNNECESSARY;
 
 public final class RSIFn {
 
-  public static final Integer RECOMMENDED_PERIOD = 14;
+  public static final Integer RSI_RECOMMENDED_PERIOD = 14;
 
   /**
-   * Maximum value for the Relative Strength Index (RSI).
+   * Maximum value for the Relative Strength Index (RSI). This is the value for a strongly positive trend.
    */
   public static final BigDecimal RSI_MAX_VALUE = BigDecimal.valueOf(100).setScale(2, UNNECESSARY);
+  /**
+   * Minimum value for the Relative Strength Index (RSI). This is the value for a strongly negative trend.
+   */
+  public static final BigDecimal RSI_MIN_VALUE = BigDecimal.valueOf(0).setScale(2, UNNECESSARY);
+  /**
+   * Neutral value for the Relative Strength Index (RSI). This is the value for a neutral (neither positive nor negative)
+   * trend.
+   */
+  public static final BigDecimal RSI_NEUTRAL_VALUE = BigDecimal.valueOf(50).setScale(2, UNNECESSARY);
   /**
    * Indicates that the RSI value could not be calculated over the change set. This can happen if the
    * change set has less or more values than the RSI period.

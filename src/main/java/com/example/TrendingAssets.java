@@ -1,6 +1,6 @@
 package com.example;
 
-import com.example.transform.AssetValueReader;
+import com.example.transform.io.AssetValueReader;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;

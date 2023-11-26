@@ -1,10 +1,12 @@
-package com.example.transform;
+package com.example.transform.trend;
 
 import com.example.item.AssertRSI;
 import com.example.item.AssetValue;
-import com.example.item.CountAndChange;
 import org.apache.beam.sdk.extensions.avro.coders.AvroCoder;
-import org.apache.beam.sdk.transforms.*;
+import org.apache.beam.sdk.transforms.Combine;
+import org.apache.beam.sdk.transforms.Filter;
+import org.apache.beam.sdk.transforms.MapElements;
+import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.transforms.windowing.AfterWatermark;
 import org.apache.beam.sdk.transforms.windowing.FixedWindows;
 import org.apache.beam.sdk.transforms.windowing.SlidingWindows;
@@ -17,10 +19,20 @@ import org.joda.time.Duration;
 
 import java.math.BigDecimal;
 
-import static org.apache.beam.sdk.transforms.windowing.Window.ClosingBehavior.FIRE_ALWAYS;
+import static com.example.transform.trend.RSIFn.RSI_RECOMMENDED_PERIOD;
 import static org.apache.beam.sdk.transforms.windowing.Window.ClosingBehavior.FIRE_IF_NON_EMPTY;
 
 public class RSITransform extends PTransform<PCollection<AssetValue>, PCollection<AssertRSI>> {
+
+  private int rsiPeriod;
+
+  public RSITransform() {
+    this(RSI_RECOMMENDED_PERIOD);
+  }
+
+  public RSITransform(int rsiPeriod) {
+    this.rsiPeriod = rsiPeriod;
+  }
 
   @Override
   public PCollection<AssertRSI> expand(PCollection<AssetValue> input) {
@@ -31,15 +43,15 @@ public class RSITransform extends PTransform<PCollection<AssetValue>, PCollectio
         .apply("sum-values-per-group", Combine.perKey(BigDecimal::add))
         .apply("calculate-change", new ChangeTransform(Duration.standardHours(1)))
         .apply("group-in-rs-period", Window.<KV<String, BigDecimal>>into(
-            SlidingWindows.of(Duration.standardHours(14))
+            SlidingWindows.of(Duration.standardHours(rsiPeriod))
                 .every(Duration.standardHours(1))
             )
             .triggering(AfterWatermark.pastEndOfWindow())
             .withAllowedLateness(Duration.ZERO, FIRE_IF_NON_EMPTY)
             .discardingFiredPanes()
         )
-        .apply("compute-rsi", Combine.perKey(RSIFn.of(14)))
-        .apply("filter-values-on-incomplete-periods", Filter.by(x -> x.getValue().compareTo(BigDecimal.ZERO) >= 0))
+        .apply("compute-rsi", Combine.perKey(RSIFn.of(rsiPeriod)))
+        .apply("filter-values-on-incomplete-rsi-periods", Filter.by(x -> x.getValue().compareTo(BigDecimal.ZERO) >= 0))
         .apply("create-asset-rsi", MapElements.into(TypeDescriptor.of(AssertRSI.class))
             .via(x -> new AssertRSI(x.getKey(), x.getValue()))).setCoder(AvroCoder.of(AssertRSI.class));
   }

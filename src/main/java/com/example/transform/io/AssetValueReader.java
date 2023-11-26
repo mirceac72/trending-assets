@@ -1,4 +1,4 @@
-package com.example.transform;
+package com.example.transform.io;
 
 import com.example.item.AssetValue;
 import io.confluent.kafka.serializers.KafkaAvroDeserializer;

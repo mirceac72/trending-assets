@@ -1,4 +1,4 @@
-package com.example.transform;
+package com.example.transform.trend;
 
 import com.example.item.CountAndChange;
 import org.apache.beam.sdk.transforms.Filter;
