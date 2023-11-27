@@ -1,6 +1,6 @@
 package com.example.transform.trend;
 
-import com.example.item.AssertRSI;
+import com.example.item.AssetRSI;
 import com.example.item.AssetValue;
 import org.apache.beam.sdk.extensions.avro.coders.AvroCoder;
 import org.apache.beam.sdk.transforms.Combine;
@@ -22,7 +22,7 @@ import java.math.BigDecimal;
 import static com.example.transform.trend.RSIFn.RSI_RECOMMENDED_PERIOD;
 import static org.apache.beam.sdk.transforms.windowing.Window.ClosingBehavior.FIRE_IF_NON_EMPTY;
 
-public class RSITransform extends PTransform<PCollection<AssetValue>, PCollection<AssertRSI>> {
+public class RSITransform extends PTransform<PCollection<AssetValue>, PCollection<AssetRSI>> {
 
   private int rsiPeriod;
 
@@ -35,7 +35,7 @@ public class RSITransform extends PTransform<PCollection<AssetValue>, PCollectio
   }
 
   @Override
-  public PCollection<AssertRSI> expand(PCollection<AssetValue> input) {
+  public PCollection<AssetRSI> expand(PCollection<AssetValue> input) {
     return input.apply("create-key-value-pairs", MapElements.into(
         TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.bigdecimals()))
             .via(assetValue -> KV.of(assetValue.asset, assetValue.value)))
@@ -52,7 +52,7 @@ public class RSITransform extends PTransform<PCollection<AssetValue>, PCollectio
         )
         .apply("compute-rsi", Combine.perKey(RSIFn.of(rsiPeriod)))
         .apply("filter-values-on-incomplete-rsi-periods", Filter.by(x -> x.getValue().compareTo(BigDecimal.ZERO) >= 0))
-        .apply("create-asset-rsi", MapElements.into(TypeDescriptor.of(AssertRSI.class))
-            .via(x -> new AssertRSI(x.getKey(), x.getValue()))).setCoder(AvroCoder.of(AssertRSI.class));
+        .apply("create-asset-rsi", MapElements.into(TypeDescriptor.of(AssetRSI.class))
+            .via(x -> new AssetRSI(x.getKey(), x.getValue()))).setCoder(AvroCoder.of(AssetRSI.class));
   }
 }

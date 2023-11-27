@@ -1,11 +1,12 @@
 package com.example;
 
-import com.example.item.AssertRSI;
+import com.example.item.AssetRSI;
 import com.example.item.AssetValue;
+import com.example.transform.io.AssetRSIClickHouseWriter;
 import com.example.transform.io.AssetValueKafkaReader;
 import com.example.transform.io.AssetValueTextFileReader;
 import com.example.transform.trend.RSITransform;
-import com.example.transform.util.PrintTransform;
+import com.example.transform.io.ConsoleWriter;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
@@ -28,12 +29,12 @@ public class TrendingAssets {
   public interface Options extends StreamingOptions {
 
     @Description("Input type (file and kafka are supported)")
-    @Default.Enum("FILE")
+    @Default.Enum("file")
     InputType getInputType();
     void setInputType(InputType inputType);
 
     @Description("Input file path. Used only if input type is file")
-    @Default.String("resources/data_file.avro")
+    @Default.String("resources/asset-value-increasing.avro")
     String getInputFile();
     void setInputFile(String inputFile);
 
@@ -48,9 +49,19 @@ public class TrendingAssets {
     void setKafkaTopic(String kafkaTopic);
 
     @Description("Output type (console and clickhouse are supported)")
-    @Default.Enum("CONSOLE")
+    @Default.Enum("console")
     OutputType getOutputType();
     void setOutputType(OutputType outputType);
+
+    @Description("Clickhouse JDBC URL. Used only if output type is clickhouse")
+    @Default.String("jdbc:clickhouse://localhost:8123/default?user=default&password=")
+    String getJdbcUrl();
+    void setJdbcUrl(String jdbcUrl);
+
+    @Description("Clickhouse table name. Used only if output type is clickhouse")
+    @Default.String("asset_rsi")
+    String getTableName();
+    void setTableName(String tableName);
 
     @Description("Relative Strength Index Period")
     @Default.Integer(14)
@@ -59,13 +70,13 @@ public class TrendingAssets {
   }
 
   public enum InputType {
-    FILE,
-    KAFKA
+    file,
+    kafka
   }
 
   public enum OutputType {
-    CONSOLE,
-    CLICKHOUSE
+    console,
+    clickhouse
   }
 
   private static void buildPipeline(Pipeline pipeline, Options options) {
@@ -78,16 +89,16 @@ public class TrendingAssets {
   private static PTransform<PBegin, PCollection<AssetValue>> readerTransform(Options options) {
 
     return switch (options.getInputType()) {
-      case FILE -> new AssetValueTextFileReader(options.getInputFile());
-      case KAFKA -> new AssetValueKafkaReader(options.getKafkaBootstrapServers(), options.getKafkaTopic());
+      case file -> new AssetValueTextFileReader(options.getInputFile());
+      case kafka -> new AssetValueKafkaReader(options.getKafkaBootstrapServers(), options.getKafkaTopic());
     };
   }
 
-  private static PTransform<PCollection<AssertRSI>, PDone> writerTransform(Options options) {
+  private static PTransform<PCollection<AssetRSI>, PDone> writerTransform(Options options) {
 
     return switch (options.getOutputType()) {
-      case CONSOLE -> new PrintTransform<>();
-      default -> throw new IllegalArgumentException("Unsupported output type: " + options.getOutputType());
+      case console -> new ConsoleWriter<>();
+      case clickhouse -> new AssetRSIClickHouseWriter(options.getJdbcUrl(), options.getTableName());
     };
   }
 }

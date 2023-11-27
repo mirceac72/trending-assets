@@ -10,37 +10,37 @@ import java.util.Objects;
 
 @DefaultSchema(JavaFieldSchema.class)
 @DefaultCoder(AvroCoder.class)
-public class AssertRSI{
+public class AssetRSI {
 
-    public AssertRSI() {
+    public AssetRSI() {
     }
 
-    public AssertRSI(String asset, BigDecimal rsiValue) {
+    public AssetRSI(String asset, BigDecimal rsi) {
         this.asset = asset;
-        this.rsiValue = rsiValue;
+        this.rsi = rsi;
     }
 
     public String asset;
-    public BigDecimal rsiValue;
+    public BigDecimal rsi;
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        AssertRSI assertRSI = (AssertRSI) o;
-        return Objects.equals(asset, assertRSI.asset) && Objects.equals(rsiValue, assertRSI.rsiValue);
+        AssetRSI assetRSI = (AssetRSI) o;
+        return Objects.equals(asset, assetRSI.asset) && Objects.equals(rsi, assetRSI.rsi);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(asset, rsiValue);
+        return Objects.hash(asset, rsi);
     }
 
     @Override
     public String toString() {
         return "AssertRSI{" +
             "asset='" + asset + '\'' +
-            ", rsiValue=" + rsiValue +
+            ", rsiValue=" + rsi +
             '}';
     }
 }

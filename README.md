@@ -17,10 +17,36 @@ gradle build
 
 ## Test the pipeline locally
 
+The `resources` contains sample avro files that can be used to test the pipeline. The file were generated using the
+using [avro-tools-1.11.3.jar]() from the corresponding jsonl files and using the `asset-value.avsc` avro schema.
+
+An example of the command used to generate the avro files is:
+```bash
+java -jar ./avro-tools-1.11.3.jar fromjson\
+ --schema-file resources/asset-value.avsc\
+ resources/asset-value-increasing-mixed.jsonl\
+ > resources/asset-value-increasing-mixed.avro
+```
+
+The file `1-asset-rsi-table.sql` contains the SQL command to create the `asset_rsi` table in Clickhouse.
+
 ### Test pipeline using input from FILE and output to CONSOLE
 
 ```bash
 gradle run
+```
+
+### Test pipeline using input from FILE and output to Clickhouse
+
+```bash
+gradle run --args='--inputFile=resources/asset-value-increasing.avro --outputType=clickhouse --tableName=asset_rsi'
+```
+This command used the default `jdbcUrl` parameter value which is `jdbc:clickhouse://localhost:8123/default?user=default&password=`
+Specify a value for the `jdbcUrl` parameter if you want to use a different database or a different user.
+
+For example, the next command uses a database named `asset_db` and a user named `default` with no password
+```bash
+gradle run --args='--inputFile=resources/asset-value-increasing-mixed.avro --outputType=clickhouse --tableName=asset_rsi --jdbcUrl=jdbc:clickhouse://localhost:8123/asset_db?user=default&password='
 ```
 
 ### Test pipeline using input from Kafka and output to Clickhouse (Work in progress)

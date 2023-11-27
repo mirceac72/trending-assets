@@ -1,8 +1,8 @@
 package com.example.transform.trend;
 
-import com.example.item.AssertRSI;
+import com.example.item.AssetRSI;
 import com.example.item.AssetValue;
-import com.example.transform.util.PrintTransform;
+import com.example.transform.io.ConsoleWriter;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.extensions.avro.coders.AvroCoder;
 import org.apache.beam.sdk.testing.PAssert;
@@ -50,10 +50,10 @@ class RSITransformTest {
     var rsiCollection = pipeline.apply(inputs)
         .apply(new RSITransform());
 
-    rsiCollection.apply(new PrintTransform<>());
+    rsiCollection.apply(new ConsoleWriter<>());
 
     PAssert.that(rsiCollection).containsInAnyOrder(
-        new AssertRSI("A", BigDecimal.valueOf(55.56).setScale(2, UNNECESSARY))
+        new AssetRSI("A", BigDecimal.valueOf(55.56).setScale(2, UNNECESSARY))
     );
 
     pipeline.run().waitUntilFinish();
@@ -85,12 +85,12 @@ class RSITransformTest {
     var rsiCollection = pipeline.apply(inputs)
         .apply(new RSITransform());
 
-    rsiCollection.apply(new PrintTransform<>());
+    rsiCollection.apply(new ConsoleWriter<>());
 
     PAssert.that(rsiCollection).containsInAnyOrder(
-        new AssertRSI("A", RSI_MAX_VALUE),
-        new AssertRSI("A", RSI_MAX_VALUE),
-        new AssertRSI("A", RSI_MAX_VALUE)
+        new AssetRSI("A", RSI_MAX_VALUE),
+        new AssetRSI("A", RSI_MAX_VALUE),
+        new AssetRSI("A", RSI_MAX_VALUE)
     );
 
     pipeline.run().waitUntilFinish();
@@ -122,12 +122,12 @@ class RSITransformTest {
     var rsiCollection = pipeline.apply(inputs)
         .apply(new RSITransform());
 
-    rsiCollection.apply(new PrintTransform<>());
+    rsiCollection.apply(new ConsoleWriter<>());
 
     PAssert.that(rsiCollection).containsInAnyOrder(
-        new AssertRSI("A", RSI_MIN_VALUE),
-        new AssertRSI("A", RSI_MIN_VALUE),
-        new AssertRSI("A", RSI_MIN_VALUE)
+        new AssetRSI("A", RSI_MIN_VALUE),
+        new AssetRSI("A", RSI_MIN_VALUE),
+        new AssetRSI("A", RSI_MIN_VALUE)
     );
 
     pipeline.run().waitUntilFinish();
@@ -159,12 +159,12 @@ class RSITransformTest {
     var rsiCollection = pipeline.apply(inputs)
         .apply(new RSITransform());
 
-    rsiCollection.apply(new PrintTransform<>());
+    rsiCollection.apply(new ConsoleWriter<>());
 
     PAssert.that(rsiCollection).containsInAnyOrder(
-        new AssertRSI("A", RSI_NEUTRAL_VALUE),
-        new AssertRSI("A", RSI_NEUTRAL_VALUE),
-        new AssertRSI("A", RSI_NEUTRAL_VALUE)
+        new AssetRSI("A", RSI_NEUTRAL_VALUE),
+        new AssetRSI("A", RSI_NEUTRAL_VALUE),
+        new AssetRSI("A", RSI_NEUTRAL_VALUE)
     );
 
     pipeline.run().waitUntilFinish();
