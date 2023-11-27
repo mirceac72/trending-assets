@@ -17,34 +17,34 @@ import org.apache.beam.sdk.values.TypeDescriptor;
 import org.apache.beam.sdk.values.TypeDescriptors;
 import org.joda.time.Duration;
 
+import javax.xml.crypto.dsig.keyinfo.KeyValue;
 import java.math.BigDecimal;
 
 import static com.example.transform.trend.RSIFn.RSI_RECOMMENDED_PERIOD;
 import static org.apache.beam.sdk.transforms.windowing.Window.ClosingBehavior.FIRE_IF_NON_EMPTY;
 
-public class RSITransform extends PTransform<PCollection<AssetValue>, PCollection<AssetRSI>> {
+public class RSITransform extends PTransform<PCollection<KV<String, BigDecimal>>, PCollection<AssetRSI>> {
 
+  private Duration inputPeriod;
   private int rsiPeriod;
 
   public RSITransform() {
-    this(RSI_RECOMMENDED_PERIOD);
+    this(Duration.standardHours(1), RSI_RECOMMENDED_PERIOD);
   }
 
-  public RSITransform(int rsiPeriod) {
+  public RSITransform(Duration inputPeriod, int rsiPeriod) {
+
+    this.inputPeriod = inputPeriod;
     this.rsiPeriod = rsiPeriod;
   }
 
   @Override
-  public PCollection<AssetRSI> expand(PCollection<AssetValue> input) {
-    return input.apply("create-key-value-pairs", MapElements.into(
-        TypeDescriptors.kvs(TypeDescriptors.strings(), TypeDescriptors.bigdecimals()))
-            .via(assetValue -> KV.of(assetValue.asset, assetValue.value)))
-        .apply("group-values-per-time-interval", Window.into(FixedWindows.of(Duration.standardHours(1))))
-        .apply("sum-values-per-group", Combine.perKey(BigDecimal::add))
-        .apply("calculate-change", new ChangeTransform(Duration.standardHours(1)))
+  public PCollection<AssetRSI> expand(PCollection<KV<String, BigDecimal>> input) {
+    return input
+        .apply("calculate-change", new ChangeTransform(inputPeriod))
         .apply("group-in-rs-period", Window.<KV<String, BigDecimal>>into(
-            SlidingWindows.of(Duration.standardHours(rsiPeriod))
-                .every(Duration.standardHours(1))
+            SlidingWindows.of(inputPeriod.multipliedBy(rsiPeriod))
+                .every(inputPeriod)
             )
             .triggering(AfterWatermark.pastEndOfWindow())
             .withAllowedLateness(Duration.ZERO, FIRE_IF_NON_EMPTY)

@@ -18,7 +18,7 @@ gradle build
 ## Test the pipeline locally
 
 The `resources` contains sample avro files that can be used to test the pipeline. The file were generated using the
-using [avro-tools-1.11.3.jar]() from the corresponding jsonl files and using the `asset-value.avsc` avro schema.
+using [avro-tools-1.11.3.jar](https://mvnrepository.com/artifact/org.apache.avro/avro-tools) from the corresponding jsonl files and using the `asset-value.avsc` avro schema.
 
 An example of the command used to generate the avro files is:
 ```bash
@@ -34,6 +34,10 @@ The file `1-asset-rsi-table.sql` contains the SQL command to create the `asset_r
 
 ```bash
 gradle run
+```
+
+```bash
+gradle run --args='--inputFile=resources/asset-value-mixed-5m.avro --durationUnit=minutes --durationUnitNumber=5'
 ```
 
 ### Test pipeline using input from FILE and output to Clickhouse

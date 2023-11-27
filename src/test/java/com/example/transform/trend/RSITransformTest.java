@@ -1,13 +1,15 @@
 package com.example.transform.trend;
 
 import com.example.item.AssetRSI;
-import com.example.item.AssetValue;
 import com.example.transform.io.ConsoleWriter;
 import org.apache.beam.sdk.Pipeline;
-import org.apache.beam.sdk.extensions.avro.coders.AvroCoder;
+import org.apache.beam.sdk.coders.BigDecimalCoder;
+import org.apache.beam.sdk.coders.KvCoder;
+import org.apache.beam.sdk.coders.StringUtf8Coder;
 import org.apache.beam.sdk.testing.PAssert;
 import org.apache.beam.sdk.testing.TestStream;
 import org.apache.beam.sdk.transforms.PTransform;
+import org.apache.beam.sdk.values.KV;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 import org.joda.time.DateTime;
@@ -17,8 +19,8 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.IntStream;
 
+import static com.example.transform.TestUtils.tkv;
 import static com.example.transform.trend.RSIFn.*;
-import static com.example.transform.TestUtils.withTs;
 import static java.math.RoundingMode.UNNECESSARY;
 
 class RSITransformTest {
@@ -33,16 +35,16 @@ class RSITransformTest {
 
     DateTime time = DateTime.now().withTimeAtStartOfDay();
 
-    var testStreamBuilder = TestStream.create(AvroCoder.of(AssetValue.class));
+    var testStreamBuilder = TestStream.create(KvCoder.of(StringUtf8Coder.of(), BigDecimalCoder.of()));
 
     for (var value : values) {
       testStreamBuilder = testStreamBuilder
-          .addElements(withTs(new AssetValue(time.toInstant(), "A", value)))
+          .addElements(tkv(time.toInstant(), "A", value))
           .advanceWatermarkTo(time.toInstant());
       time = time.plusHours(1);
     }
 
-    PTransform<PBegin, PCollection<AssetValue>> inputs = testStreamBuilder
+    PTransform<PBegin, PCollection<KV<String, BigDecimal>>> inputs = testStreamBuilder
         .advanceWatermarkToInfinity();
 
     Pipeline pipeline = Pipeline.create();
@@ -68,16 +70,16 @@ class RSITransformTest {
 
     DateTime time = DateTime.now().withTimeAtStartOfDay();
 
-    var testStreamBuilder = TestStream.create(AvroCoder.of(AssetValue.class));
+    var testStreamBuilder = TestStream.create(KvCoder.of(StringUtf8Coder.of(), BigDecimalCoder.of()));
 
     for (var value : values) {
       testStreamBuilder = testStreamBuilder
-          .addElements(withTs(new AssetValue(time.toInstant(), "A", value)))
+          .addElements(tkv(time.toInstant(), "A", value))
           .advanceWatermarkTo(time.toInstant());
       time = time.plusHours(1);
     }
 
-    PTransform<PBegin, PCollection<AssetValue>> inputs = testStreamBuilder
+    PTransform<PBegin, PCollection<KV<String, BigDecimal>>> inputs = testStreamBuilder
         .advanceWatermarkToInfinity();
 
     Pipeline pipeline = Pipeline.create();
@@ -105,16 +107,16 @@ class RSITransformTest {
 
     DateTime time = DateTime.now().withTimeAtStartOfDay();
 
-    var testStreamBuilder = TestStream.create(AvroCoder.of(AssetValue.class));
+    var testStreamBuilder = TestStream.create(KvCoder.of(StringUtf8Coder.of(), BigDecimalCoder.of()));
 
     for (var value : values) {
       testStreamBuilder = testStreamBuilder
-          .addElements(withTs(new AssetValue(time.toInstant(), "A", value)))
+          .addElements(tkv(time.toInstant(), "A", value))
           .advanceWatermarkTo(time.toInstant());
       time = time.plusHours(1);
     }
 
-    PTransform<PBegin, PCollection<AssetValue>> inputs = testStreamBuilder
+    PTransform<PBegin, PCollection<KV<String, BigDecimal>>> inputs = testStreamBuilder
         .advanceWatermarkToInfinity();
 
     Pipeline pipeline = Pipeline.create();
@@ -142,16 +144,16 @@ class RSITransformTest {
 
     DateTime time = DateTime.now().withTimeAtStartOfDay();
 
-    var testStreamBuilder = TestStream.create(AvroCoder.of(AssetValue.class));
+    var testStreamBuilder = TestStream.create(KvCoder.of(StringUtf8Coder.of(), BigDecimalCoder.of()));
 
     for (var value : values) {
       testStreamBuilder = testStreamBuilder
-          .addElements(withTs(new AssetValue(time.toInstant(), "A", value)))
+          .addElements(tkv(time.toInstant(), "A", value))
           .advanceWatermarkTo(time.toInstant());
       time = time.plusHours(1);
     }
 
-    PTransform<PBegin, PCollection<AssetValue>> inputs = testStreamBuilder
+    PTransform<PBegin, PCollection<KV<String, BigDecimal>>> inputs = testStreamBuilder
         .advanceWatermarkToInfinity();
 
     Pipeline pipeline = Pipeline.create();

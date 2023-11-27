@@ -7,6 +7,7 @@ import com.example.transform.io.AssetValueKafkaReader;
 import com.example.transform.io.AssetValueTextFileReader;
 import com.example.transform.trend.RSITransform;
 import com.example.transform.io.ConsoleWriter;
+import com.example.transform.aggregator.SumAggregator;
 import org.apache.beam.sdk.Pipeline;
 import org.apache.beam.sdk.options.Default;
 import org.apache.beam.sdk.options.Description;
@@ -16,6 +17,7 @@ import org.apache.beam.sdk.transforms.PTransform;
 import org.apache.beam.sdk.values.PBegin;
 import org.apache.beam.sdk.values.PCollection;
 import org.apache.beam.sdk.values.PDone;
+import org.joda.time.Duration;
 
 public class TrendingAssets {
 
@@ -63,6 +65,16 @@ public class TrendingAssets {
     String getTableName();
     void setTableName(String tableName);
 
+    @Description("Input period duration unit")
+    @Default.Enum("hours")
+    DurationUnit getDurationUnit();
+    void setDurationUnit(DurationUnit durationUnit);
+
+    @Description("Input period number of duration units")
+    @Default.Integer(1)
+    Integer getDurationUnitNumber();
+    void setDurationUnitNumber(Integer durationUnitNumber);
+
     @Description("Relative Strength Index Period")
     @Default.Integer(14)
     Integer getRsiPeriod();
@@ -79,10 +91,20 @@ public class TrendingAssets {
     clickhouse
   }
 
+  public enum DurationUnit {
+    seconds,
+    minutes,
+    hours,
+    days
+  }
+
   private static void buildPipeline(Pipeline pipeline, Options options) {
 
+    var inputPeriod = inputPeriod(options);
+
     pipeline.apply("read-asset-values", readerTransform(options))
-        .apply("calculate-rsi", (new RSITransform(options.getRsiPeriod())))
+        .apply("aggregate-asset-values", new SumAggregator(inputPeriod))
+        .apply("calculate-rsi", (new RSITransform(inputPeriod, options.getRsiPeriod())))
         .apply("write-rsi", writerTransform(options));
   }
 
@@ -99,6 +121,15 @@ public class TrendingAssets {
     return switch (options.getOutputType()) {
       case console -> new ConsoleWriter<>();
       case clickhouse -> new AssetRSIClickHouseWriter(options.getJdbcUrl(), options.getTableName());
+    };
+  }
+
+  private static Duration inputPeriod(Options options) {
+    return switch (options.getDurationUnit()) {
+      case seconds -> Duration.standardSeconds(options.getDurationUnitNumber());
+      case minutes -> Duration.standardMinutes(options.getDurationUnitNumber());
+      case hours -> Duration.standardHours(options.getDurationUnitNumber());
+      case days -> Duration.standardDays(options.getDurationUnitNumber());
     };
   }
 }
